@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -48,11 +48,14 @@ import { User } from '../../../../models/user.model';
         </mat-card-header>
         <mat-card-content>
 
-          <div *ngIf="isLoading" style="display:flex; justify-content:center; padding:40px;">
-            <mat-progress-spinner mode="indeterminate" diameter="48"></mat-progress-spinner>
+          <div *ngIf="isLoading"
+            style="display:flex; justify-content:center; padding:40px;">
+            <mat-progress-spinner mode="indeterminate" diameter="48">
+            </mat-progress-spinner>
           </div>
 
-          <table mat-table [dataSource]="users" *ngIf="!isLoading" style="width:100%">
+          <table mat-table [dataSource]="users"
+            *ngIf="!isLoading && users.length > 0" style="width:100%">
 
             <ng-container matColumnDef="userId">
               <th mat-header-cell *matHeaderCellDef>User ID</th>
@@ -72,7 +75,9 @@ import { User } from '../../../../models/user.model';
             <ng-container matColumnDef="role">
               <th mat-header-cell *matHeaderCellDef>Role</th>
               <td mat-cell *matCellDef="let user">
-                <mat-chip [color]="user.role === 'admin' ? 'warn' : 'primary'" selected>
+                <mat-chip
+                  [color]="user.role === 'admin' ? 'warn' : 'primary'"
+                  selected>
                   {{ user.role }}
                 </mat-chip>
               </td>
@@ -93,6 +98,11 @@ import { User } from '../../../../models/user.model';
             <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
           </table>
 
+          <p *ngIf="!isLoading && users.length === 0"
+            style="text-align:center; padding:40px; color:#666;">
+            No users found.
+          </p>
+
         </mat-card-content>
       </mat-card>
     </div>
@@ -107,22 +117,29 @@ export class AdminComponent implements OnInit {
     private userService: UserService,
     private authService: AuthService,
     private router: Router,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private cdr: ChangeDetectorRef  // ← fixes the ExpressionChanged error
   ) {}
 
   ngOnInit(): void {
-    this.loadUsers();
+    // setTimeout pushes loading outside Angular's change detection cycle
+    setTimeout(() => this.loadUsers(), 0);
   }
 
   loadUsers(): void {
     this.isLoading = true;
+    this.cdr.detectChanges();  // tell Angular to update NOW
+
     this.userService.getAllUsers().subscribe({
       next: (res) => {
         this.users = res.users;
         this.isLoading = false;
+        this.cdr.detectChanges();  // update again after data arrives
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error:', err);
         this.isLoading = false;
+        this.cdr.detectChanges();
         this.snackBar.open('Failed to load users', 'Close', { duration: 3000 });
       }
     });
@@ -133,6 +150,7 @@ export class AdminComponent implements OnInit {
       this.userService.deleteUser(user._id!).subscribe({
         next: () => {
           this.users = this.users.filter(u => u._id !== user._id);
+          this.cdr.detectChanges();
           this.snackBar.open('User deleted', 'Close', { duration: 2000 });
         },
         error: () => {
@@ -142,10 +160,7 @@ export class AdminComponent implements OnInit {
     }
   }
 
-  goToDashboard(): void {
-    this.router.navigate(['/dashboard']);
-  }
-
+  goToDashboard(): void { this.router.navigate(['/dashboard']); }
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -39,7 +39,8 @@ export class LoginComponent implements OnInit {
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -49,9 +50,12 @@ export class LoginComponent implements OnInit {
       role: ['user', Validators.required]
     });
 
-    if (this.authService.isLoggedIn()) {
-      this.router.navigate(['/dashboard']);
-    }
+    // setTimeout prevents ExpressionChangedAfterItHasBeenChecked error
+    setTimeout(() => {
+      if (this.authService.isLoggedIn()) {
+        this.router.navigate(['/dashboard']);
+      }
+    }, 0);
   }
 
   onSubmit(): void {
@@ -59,11 +63,19 @@ export class LoginComponent implements OnInit {
       this.loginForm.markAllAsTouched();
       return;
     }
+
     this.isLoading = true;
+    this.cdr.detectChanges();
+
     this.authService.login(this.loginForm.value).subscribe({
       next: (response) => {
         this.isLoading = false;
-        this.snackBar.open(`Welcome, ${response.user.name}!`, 'Close', { duration: 3000 });
+        this.cdr.detectChanges();
+        this.snackBar.open(
+          `Welcome, ${response.user.name}! 👋`,
+          'Close',
+          { duration: 3000 }
+        );
         if (response.user.role === 'admin') {
           this.router.navigate(['/admin']);
         } else {
@@ -72,7 +84,12 @@ export class LoginComponent implements OnInit {
       },
       error: (err) => {
         this.isLoading = false;
-        this.snackBar.open(err.error?.message || 'Login failed', 'Close', { duration: 3000 });
+        this.cdr.detectChanges();
+        this.snackBar.open(
+          err.error?.message || 'Login failed. Please try again.',
+          'Close',
+          { duration: 3000 }
+        );
       }
     });
   }
