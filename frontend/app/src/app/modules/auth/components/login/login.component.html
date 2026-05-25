@@ -1,56 +1,90 @@
 <div class="login-container">
   <mat-card class="login-card">
 
-    <mat-card-header>
-      <mat-card-title>Welcome Back</mat-card-title>
-      <mat-card-subtitle>Sign in to your account</mat-card-subtitle>
-    </mat-card-header>
+    <mat-card-content style="padding:0;">
 
-    <mat-card-content>
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      <!-- Header -->
+      <div class="login-header">
+        <div class="logo-circle">
+          <mat-icon>lock</mat-icon>
+        </div>
+        <h1>Welcome Back</h1>
+        <p class="subtitle">Sign in to continue to your account</p>
+      </div>
 
-        <mat-form-field appearance="outline" style="width:100%; margin-top:16px;">
+      <!-- Form -->
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+
+        <mat-form-field appearance="outline" class="full-width">
           <mat-label>User ID</mat-label>
           <input matInput formControlName="userId" placeholder="Enter your user ID">
-          <mat-error *ngIf="userIdControl?.hasError('required')">User ID is required</mat-error>
-          <mat-error *ngIf="userIdControl?.hasError('minlength')">Minimum 3 characters</mat-error>
+          <mat-icon matSuffix style="color:#94a3b8;">person</mat-icon>
+          <mat-error *ngIf="userIdControl?.hasError('required')">
+            User ID is required
+          </mat-error>
+          <mat-error *ngIf="userIdControl?.hasError('minlength')">
+            Minimum 3 characters
+          </mat-error>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" style="width:100%;">
+        <mat-form-field appearance="outline" class="full-width">
           <mat-label>Password</mat-label>
-          <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password">
-          <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword">
-            <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          <input matInput
+            [type]="hidePassword ? 'password' : 'text'"
+            formControlName="password">
+          <button mat-icon-button matSuffix type="button"
+            (click)="hidePassword = !hidePassword">
+            <mat-icon style="color:#94a3b8;">
+              {{ hidePassword ? 'visibility_off' : 'visibility' }}
+            </mat-icon>
           </button>
-          <mat-error *ngIf="passwordControl?.hasError('required')">Password is required</mat-error>
-          <mat-error *ngIf="passwordControl?.hasError('minlength')">Minimum 6 characters</mat-error>
+          <mat-error *ngIf="passwordControl?.hasError('required')">
+            Password is required
+          </mat-error>
+          <mat-error *ngIf="passwordControl?.hasError('minlength')">
+            Minimum 6 characters
+          </mat-error>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" style="width:100%;">
+        <mat-form-field appearance="outline" class="full-width">
           <mat-label>Role</mat-label>
           <mat-select formControlName="role">
-            <mat-option value="user">General User</mat-option>
-            <mat-option value="admin">Admin</mat-option>
+            <mat-option value="user">
+              <mat-icon style="vertical-align:middle; margin-right:4px; font-size:18px;">
+                person
+              </mat-icon>
+              General User
+            </mat-option>
+            <mat-option value="admin">
+              <mat-icon style="vertical-align:middle; margin-right:4px; font-size:18px;">
+                admin_panel_settings
+              </mat-icon>
+              Admin
+            </mat-option>
           </mat-select>
+          <mat-error *ngIf="roleControl?.hasError('required')">
+            Please select a role
+          </mat-error>
         </mat-form-field>
 
-        <button mat-raised-button color="primary" type="submit"
-          style="width:100%; height:48px; font-size:16px; margin-top:8px;"
-          [disabled]="isLoading">
-          <mat-progress-spinner *ngIf="isLoading" diameter="20"
-            mode="indeterminate" style="display:inline-block; margin-right:8px;">
+        <button mat-raised-button color="primary"
+          type="submit" class="submit-btn" [disabled]="isLoading">
+          <mat-progress-spinner *ngIf="isLoading"
+            diameter="20" mode="indeterminate"
+            style="display:inline-block; margin-right:8px;">
           </mat-progress-spinner>
           {{ isLoading ? 'Signing in...' : 'Sign In' }}
         </button>
 
       </form>
-    </mat-card-content>
 
-    <mat-card-footer>
-      <div style="text-align:center; padding:12px; color:#666; font-size:13px;">
-        Demo: admin01 / admin123 / Admin role
+      <!-- Demo hint -->
+      <div class="demo-hint">
+        <strong>Demo credentials:</strong>
+        admin01 / admin123 / Admin &nbsp;|&nbsp;
+        user01 / user123 / General User
       </div>
-    </mat-card-footer>
 
+    </mat-card-content>
   </mat-card>
 </div>

@@ -13,6 +13,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { UserService } from '../../../../core/services/user.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { User } from '../../../../models/user.model';
@@ -21,22 +22,14 @@ import { User } from '../../../../models/user.model';
   selector: 'app-admin',
   standalone: true,
   imports: [
-    CommonModule,
-    FormsModule,
-    MatCardModule,
-    MatTableModule,
-    MatButtonModule,
-    MatIconModule,
-    MatProgressSpinnerModule,
-    MatSnackBarModule,
-    MatToolbarModule,
-    MatChipsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule
+    CommonModule, FormsModule,
+    MatCardModule, MatTableModule, MatButtonModule, MatIconModule,
+    MatProgressSpinnerModule, MatSnackBarModule, MatToolbarModule,
+    MatChipsModule, MatFormFieldModule, MatInputModule,
+    MatSelectModule, MatTooltipModule
   ],
   template: `
-    <!-- Top Toolbar -->
+    <!-- Toolbar -->
     <mat-toolbar color="warn">
       <mat-icon>admin_panel_settings</mat-icon>
       <span style="margin-left:8px; font-weight:600;">Admin Panel</span>
@@ -44,36 +37,64 @@ import { User } from '../../../../models/user.model';
       <button mat-button (click)="goToDashboard()">
         <mat-icon>dashboard</mat-icon> Dashboard
       </button>
-      <button mat-icon-button (click)="logout()" title="Logout">
+      <button mat-icon-button (click)="logout()" matTooltip="Logout">
         <mat-icon>logout</mat-icon>
       </button>
     </mat-toolbar>
 
-    <div style="padding:24px; max-width:1200px; margin:0 auto;">
-      <mat-card>
+    <div style="padding:24px; max-width:1200px; margin:0 auto; display:flex; flex-direction:column; gap:20px;">
 
-        <!-- Card Header with Add User button -->
-        <mat-card-header style="display:flex; justify-content:space-between; align-items:center; padding-bottom:16px;">
-          <div>
-            <mat-card-title>User Management</mat-card-title>
-            <mat-card-subtitle>Total: {{ users.length }} users</mat-card-subtitle>
+      <!-- Stats row -->
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:16px;">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#dbeafe;">
+            <mat-icon style="color:#2563eb;">group</mat-icon>
           </div>
+          <div>
+            <div class="stat-value">{{ users.length }}</div>
+            <div class="stat-label">Total Users</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#dcfce7;">
+            <mat-icon style="color:#16a34a;">person_check</mat-icon>
+          </div>
+          <div>
+            <div class="stat-value">{{ activeUsers }}</div>
+            <div class="stat-label">Active Users</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fee2e2;">
+            <mat-icon style="color:#dc2626;">admin_panel_settings</mat-icon>
+          </div>
+          <div>
+            <div class="stat-value">{{ adminCount }}</div>
+            <div class="stat-label">Admins</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- User Management Card -->
+      <mat-card style="border-radius:12px;">
+        <mat-card-header style="display:flex; justify-content:space-between; align-items:center; padding:16px 16px 0;">
+          <mat-card-title>User Management</mat-card-title>
           <button mat-raised-button color="primary" (click)="toggleAddForm()">
             <mat-icon>{{ showAddForm ? 'close' : 'person_add' }}</mat-icon>
             {{ showAddForm ? 'Cancel' : 'Add User' }}
           </button>
         </mat-card-header>
 
-        <mat-card-content>
+        <mat-card-content style="padding:16px;">
 
           <!-- Add User Form -->
           <div *ngIf="showAddForm"
-            style="padding:20px; background:#f8fafc; border-radius:8px;
+            style="padding:20px; background:#f8fafc; border-radius:10px;
                    margin-bottom:20px; border:1px solid #e2e8f0;">
-            <h3 style="margin:0 0 16px; color:#1e293b; font-size:16px;">
+            <h3 style="margin:0 0 16px; color:#1e293b; font-size:16px; font-weight:600;">
               Add New User
             </h3>
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:12px;">
+            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px;">
 
               <mat-form-field appearance="outline">
                 <mat-label>User ID</mat-label>
@@ -82,13 +103,13 @@ import { User } from '../../../../models/user.model';
 
               <mat-form-field appearance="outline">
                 <mat-label>Full Name</mat-label>
-                <input matInput [(ngModel)]="newUser.name" placeholder="e.g. Alice">
+                <input matInput [(ngModel)]="newUser.name" placeholder="e.g. Alice Smith">
               </mat-form-field>
 
               <mat-form-field appearance="outline">
                 <mat-label>Email</mat-label>
                 <input matInput [(ngModel)]="newUser.email"
-                  placeholder="e.g. alice@test.com" type="email">
+                  placeholder="alice@test.com" type="email">
               </mat-form-field>
 
               <mat-form-field appearance="outline">
@@ -112,17 +133,15 @@ import { User } from '../../../../models/user.model';
                 <mat-icon>save</mat-icon>
                 {{ isAdding ? 'Saving...' : 'Save User' }}
               </button>
-              <button mat-button (click)="toggleAddForm()">
-                Cancel
-              </button>
+              <button mat-stroked-button (click)="toggleAddForm()">Cancel</button>
             </div>
           </div>
 
           <!-- Loading Spinner -->
           <div *ngIf="isLoading"
-            style="display:flex; justify-content:center; padding:40px;">
-            <mat-progress-spinner mode="indeterminate" diameter="48">
-            </mat-progress-spinner>
+            style="display:flex; flex-direction:column; align-items:center; padding:48px; gap:16px;">
+            <mat-progress-spinner mode="indeterminate" diameter="48"></mat-progress-spinner>
+            <p style="color:#64748b; font-size:13px;">Loading users...</p>
           </div>
 
           <!-- Users Table -->
@@ -131,9 +150,7 @@ import { User } from '../../../../models/user.model';
 
             <ng-container matColumnDef="userId">
               <th mat-header-cell *matHeaderCellDef>User ID</th>
-              <td mat-cell *matCellDef="let user">
-                <strong>{{ user.userId }}</strong>
-              </td>
+              <td mat-cell *matCellDef="let user"><strong>{{ user.userId }}</strong></td>
             </ng-container>
 
             <ng-container matColumnDef="name">
@@ -149,62 +166,91 @@ import { User } from '../../../../models/user.model';
             <ng-container matColumnDef="role">
               <th mat-header-cell *matHeaderCellDef>Role</th>
               <td mat-cell *matCellDef="let user">
-                <mat-chip
-                  [color]="user.role === 'admin' ? 'warn' : 'primary'"
-                  selected>
+                <span [style.background]="user.role === 'admin' ? '#fee2e2' : '#dbeafe'"
+                  [style.color]="user.role === 'admin' ? '#991b1b' : '#1e40af'"
+                  style="padding:3px 10px; border-radius:20px; font-size:12px; font-weight:500;">
                   {{ user.role }}
-                </mat-chip>
+                </span>
               </td>
             </ng-container>
 
             <ng-container matColumnDef="status">
               <th mat-header-cell *matHeaderCellDef>Status</th>
               <td mat-cell *matCellDef="let user">
-                <mat-chip color="accent" selected>
+                <span [style.background]="user.isActive !== false ? '#dcfce7' : '#f1f5f9'"
+                  [style.color]="user.isActive !== false ? '#166534' : '#64748b'"
+                  style="padding:3px 10px; border-radius:20px; font-size:12px; font-weight:500;">
                   {{ user.isActive !== false ? 'Active' : 'Inactive' }}
-                </mat-chip>
+                </span>
               </td>
             </ng-container>
 
             <ng-container matColumnDef="actions">
               <th mat-header-cell *matHeaderCellDef>Actions</th>
               <td mat-cell *matCellDef="let user">
+                <!-- Toggle active/inactive -->
+                <button mat-icon-button
+                  [color]="user.isActive !== false ? 'primary' : 'warn'"
+                  (click)="toggleStatus(user)"
+                  [disabled]="user.role === 'admin'"
+                  [matTooltip]="user.role === 'admin' ? 'Cannot modify admin'
+                    : (user.isActive !== false ? 'Deactivate' : 'Activate')">
+                  <mat-icon>
+                    {{ user.isActive !== false ? 'toggle_on' : 'toggle_off' }}
+                  </mat-icon>
+                </button>
+                <!-- Delete -->
                 <button mat-icon-button color="warn"
                   (click)="deleteUser(user)"
                   [disabled]="user.role === 'admin'"
-                  title="{{ user.role === 'admin' ? 'Cannot delete admin' : 'Delete user' }}">
+                  [matTooltip]="user.role === 'admin' ? 'Cannot delete admin' : 'Delete user'">
                   <mat-icon>delete</mat-icon>
                 </button>
               </td>
             </ng-container>
 
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+              style="transition:background 0.15s;"
+              onmouseenter="this.style.background='#f8fafc'"
+              onmouseleave="this.style.background=''">
+            </tr>
           </table>
 
-          <!-- No users message -->
-          <p *ngIf="!isLoading && users.length === 0"
-            style="text-align:center; padding:40px; color:#64748b;">
-            No users found. Add one above!
-          </p>
+          <!-- Empty state -->
+          <div *ngIf="!isLoading && users.length === 0"
+            style="text-align:center; padding:48px; color:#64748b;">
+            <mat-icon style="font-size:48px; width:48px; height:48px; color:#cbd5e1;">
+              group_off
+            </mat-icon>
+            <p style="margin-top:8px;">No users found. Add one above!</p>
+          </div>
 
         </mat-card-content>
       </mat-card>
+
     </div>
   `,
   styles: [`
-    mat-card-header {
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      gap: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
     }
-    .mat-column-actions {
-      width: 80px;
-      text-align: center;
+    .stat-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
     }
-    tr.mat-row:hover {
-      background: #f8fafc;
+    .stat-icon mat-icon {
+      font-size: 24px !important; width: 24px !important; height: 24px !important;
     }
+    .stat-value { font-size: 28px; font-weight: 700; color: #1e293b; line-height: 1; }
+    .stat-label { font-size: 13px; color: #64748b; margin-top: 4px; }
   `]
 })
 export class AdminComponent implements OnInit {
@@ -214,7 +260,10 @@ export class AdminComponent implements OnInit {
   showAddForm = false;
   displayedColumns = ['userId', 'name', 'email', 'role', 'status', 'actions'];
 
-  // New user form model
+  // Computed stats
+  get activeUsers() { return this.users.filter(u => u.isActive !== false).length; }
+  get adminCount() { return this.users.filter(u => u.role === 'admin').length; }
+
   newUser = {
     userId: '',
     name: '',
@@ -237,7 +286,6 @@ export class AdminComponent implements OnInit {
 
   toggleAddForm(): void {
     this.showAddForm = !this.showAddForm;
-    // Reset form when closing
     if (!this.showAddForm) {
       this.newUser = { userId: '', name: '', email: '', password: '', role: 'user' };
     }
@@ -246,15 +294,13 @@ export class AdminComponent implements OnInit {
   loadUsers(): void {
     this.isLoading = true;
     this.cdr.detectChanges();
-
     this.userService.getAllUsers().subscribe({
       next: (res) => {
         this.users = res.users;
         this.isLoading = false;
         this.cdr.detectChanges();
       },
-      error: (err) => {
-        console.error('Error loading users:', err);
+      error: () => {
         this.isLoading = false;
         this.cdr.detectChanges();
         this.snackBar.open('Failed to load users', 'Close', { duration: 3000 });
@@ -263,37 +309,44 @@ export class AdminComponent implements OnInit {
   }
 
   addUser(): void {
-    // Validate all fields
     if (!this.newUser.userId || !this.newUser.name ||
         !this.newUser.email || !this.newUser.password) {
       this.snackBar.open('Please fill all fields', 'Close', { duration: 2000 });
       return;
     }
-
     if (this.newUser.password.length < 6) {
       this.snackBar.open('Password must be at least 6 characters', 'Close', { duration: 2000 });
       return;
     }
-
     this.isAdding = true;
-
     this.userService.createUser(this.newUser).subscribe({
       next: () => {
         this.isAdding = false;
         this.showAddForm = false;
-        // Reset form
         this.newUser = { userId: '', name: '', email: '', password: '', role: 'user' };
         this.snackBar.open('User created successfully!', 'Close', { duration: 2000 });
-        // Reload users list
         this.loadUsers();
       },
       error: (err) => {
         this.isAdding = false;
+        this.snackBar.open(err.error?.message || 'Failed to create user', 'Close', { duration: 3000 });
+      }
+    });
+  }
+
+  toggleStatus(user: User): void {
+    const newStatus = user.isActive === false ? true : false;
+    this.userService.updateUser(user._id!, { isActive: newStatus }).subscribe({
+      next: () => {
+        user.isActive = newStatus;
+        this.cdr.detectChanges();
         this.snackBar.open(
-          err.error?.message || 'Failed to create user',
-          'Close',
-          { duration: 3000 }
+          `${user.name} ${newStatus ? 'activated' : 'deactivated'}`,
+          'Close', { duration: 2000 }
         );
+      },
+      error: () => {
+        this.snackBar.open('Update failed', 'Close', { duration: 2000 });
       }
     });
   }
@@ -313,10 +366,7 @@ export class AdminComponent implements OnInit {
     }
   }
 
-  goToDashboard(): void {
-    this.router.navigate(['/dashboard']);
-  }
-
+  goToDashboard(): void { this.router.navigate(['/dashboard']); }
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);

@@ -36,6 +36,12 @@ export class DashboardComponent implements OnInit {
   isLoadingRecords = false;
   displayedColumns = ['id', 'title', 'status', 'priority', 'assignee', 'date'];
 
+  // Computed stats from real API data
+  get totalRecords() { return this.records.length; }
+  get activeCount() { return this.records.filter(r => r.status === 'Active').length; }
+  get pendingCount() { return this.records.filter(r => r.status === 'Pending').length; }
+  get completedCount() { return this.records.filter(r => r.status === 'Completed').length; }
+
   constructor(
     private authService: AuthService,
     private userService: UserService,
@@ -49,6 +55,7 @@ export class DashboardComponent implements OnInit {
 
   loadRecords(): void {
     this.isLoadingRecords = true;
+    // 1500ms delay in backend demonstrates async processing
     this.userService.getRecords().subscribe({
       next: (res) => {
         this.records = res.records;
@@ -67,14 +74,5 @@ export class DashboardComponent implements OnInit {
 
   goToAdmin(): void {
     this.router.navigate(['/admin']);
-  }
-
-  getStatusColor(status: string): string {
-    const colors: {[key: string]: string} = {
-      'Active': 'primary',
-      'Pending': 'warn',
-      'Completed': 'accent'
-    };
-    return colors[status] || 'default';
   }
 }
