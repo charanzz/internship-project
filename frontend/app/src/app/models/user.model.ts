@@ -19,12 +19,3 @@ export interface AuthResponse {
   token: string;
   user: User;
 }
-
-export interface Record {
-  id: number;
-  title: string;
-  status: string;
-  priority: string;
-  assignee: string;
-  date: string;
-}

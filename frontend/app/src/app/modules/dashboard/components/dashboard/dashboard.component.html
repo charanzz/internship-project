@@ -1,11 +1,24 @@
 <div class="dashboard-layout">
 
-  <!-- Top Toolbar -->
-  <mat-toolbar color="primary">
+  <!-- Toolbar -->
+  <mat-toolbar color="primary" class="toolbar">
     <mat-icon>dashboard</mat-icon>
-    <span style="margin-left:8px; font-weight:600; font-size:18px;">My Dashboard</span>
-    <span style="flex:1"></span>
-    <button mat-button *ngIf="currentUser?.role === 'admin'" (click)="goToAdmin()">
+    <span class="toolbar-title">My Dashboard</span>
+    <span class="spacer"></span>
+    <span *ngIf="currentUser?.role === 'admin'" class="access-badge">
+      <mat-icon style="font-size:14px; width:14px; height:14px; vertical-align:middle;">
+        shield
+      </mat-icon>
+      Full Access
+    </span>
+    <span *ngIf="currentUser?.role !== 'admin'" class="access-badge access-badge-user">
+      <mat-icon style="font-size:14px; width:14px; height:14px; vertical-align:middle;">
+        person
+      </mat-icon>
+      General Access
+    </span>
+    <button mat-button *ngIf="currentUser?.role === 'admin'"
+      (click)="goToAdmin()" style="margin-left:8px;">
       <mat-icon>admin_panel_settings</mat-icon> Admin Panel
     </button>
     <button mat-icon-button (click)="logout()" matTooltip="Logout">
@@ -34,17 +47,36 @@
                 <mat-icon class="meta-icon">security</mat-icon>
                 Role:
                 <span [class]="currentUser?.role === 'admin'
-                  ? 'chip chip-green' : 'chip chip-blue'">
+                  ? 'chip chip-red' : 'chip chip-blue'">
                   {{ currentUser?.role | titlecase }}
                 </span>
               </span>
             </div>
           </div>
+
+          <!-- Access level banner -->
+          <div [class]="currentUser?.role === 'admin'
+            ? 'access-banner access-admin' : 'access-banner access-user'">
+            <mat-icon>
+              {{ currentUser?.role === 'admin' ? 'admin_panel_settings' : 'person' }}
+            </mat-icon>
+            <div>
+              <div class="access-title">
+                {{ currentUser?.role === 'admin' ? 'Admin Access' : 'General Access' }}
+              </div>
+              <div class="access-desc">
+                {{ currentUser?.role === 'admin'
+                  ? 'Full system access including restricted records'
+                  : 'Access to permitted records only' }}
+              </div>
+            </div>
+          </div>
+
         </div>
       </mat-card-content>
     </mat-card>
 
-    <!-- Stats Cards — only shown after data loads -->
+    <!-- Stats Cards -->
     <div class="stats-row" *ngIf="!isLoadingRecords && records.length > 0">
       <div class="stat-card">
         <div class="stat-icon icon-blue">
@@ -88,48 +120,57 @@
     <mat-card class="table-card">
       <mat-card-header>
         <mat-card-title>
-          <mat-icon style="vertical-align:middle; margin-right:4px;">table_chart</mat-icon>
+          <mat-icon class="title-icon">table_chart</mat-icon>
           Project Records
         </mat-card-title>
-        <button mat-icon-button (click)="loadRecords()" matTooltip="Refresh records">
+        <!-- Access level info -->
+        <span *ngIf="!isLoadingRecords" class="access-info">
+          <mat-icon style="font-size:14px; width:14px; height:14px;">info</mat-icon>
+          {{ accessMessage }}
+        </span>
+        <button mat-icon-button (click)="loadRecords()" matTooltip="Refresh">
           <mat-icon>refresh</mat-icon>
         </button>
       </mat-card-header>
 
       <mat-card-content>
 
-        <!-- Skeleton Loader — shows while API is loading -->
+        <!-- Skeleton Loader -->
         <div *ngIf="isLoadingRecords" class="skeleton-wrapper">
           <div *ngFor="let i of [1,2,3,4,5]" class="skeleton-row">
             <div class="skeleton-cell" style="width:30px"></div>
-            <div class="skeleton-cell" style="flex:2; min-width:100px"></div>
-            <div class="skeleton-cell" style="width:80px"></div>
-            <div class="skeleton-cell" style="width:70px"></div>
-            <div class="skeleton-cell" style="flex:1; min-width:80px"></div>
+            <div class="skeleton-cell" style="flex:2; min-width:120px"></div>
             <div class="skeleton-cell" style="width:90px"></div>
+            <div class="skeleton-cell" style="width:80px"></div>
+            <div class="skeleton-cell" style="flex:1; min-width:80px"></div>
+            <div class="skeleton-cell" style="width:100px"></div>
           </div>
-          <p class="loading-text">Fetching records from API...</p>
+          <p class="loading-text">
+            <mat-icon style="font-size:16px; width:16px; height:16px;
+              vertical-align:middle; margin-right:4px;">hourglass_empty</mat-icon>
+            Fetching records from API...
+          </p>
         </div>
 
-        <!-- Data Table -->
+        <!-- Table -->
         <table mat-table [dataSource]="records"
           *ngIf="!isLoadingRecords" class="records-table">
 
-          <!-- # Column -->
           <ng-container matColumnDef="id">
             <th mat-header-cell *matHeaderCellDef>#</th>
             <td mat-cell *matCellDef="let row">{{ row.id }}</td>
           </ng-container>
 
-          <!-- Title Column -->
           <ng-container matColumnDef="title">
             <th mat-header-cell *matHeaderCellDef>Project</th>
             <td mat-cell *matCellDef="let row">
-              <strong>{{ row.title }}</strong>
+              <div class="project-title">{{ row.title }}</div>
+              <div class="project-desc" *ngIf="row.description">
+                {{ row.description }}
+              </div>
             </td>
           </ng-container>
 
-          <!-- Status Column with colour chips -->
           <ng-container matColumnDef="status">
             <th mat-header-cell *matHeaderCellDef>Status</th>
             <td mat-cell *matCellDef="let row">
@@ -139,7 +180,6 @@
             </td>
           </ng-container>
 
-          <!-- Priority Column with colour chips -->
           <ng-container matColumnDef="priority">
             <th mat-header-cell *matHeaderCellDef>Priority</th>
             <td mat-cell *matCellDef="let row">
@@ -149,21 +189,20 @@
             </td>
           </ng-container>
 
-          <!-- Assignee Column -->
           <ng-container matColumnDef="assignee">
             <th mat-header-cell *matHeaderCellDef>Assignee</th>
             <td mat-cell *matCellDef="let row">{{ row.assignee }}</td>
           </ng-container>
 
-          <!-- Date Column -->
           <ng-container matColumnDef="date">
             <th mat-header-cell *matHeaderCellDef>Date</th>
             <td mat-cell *matCellDef="let row">{{ row.date }}</td>
           </ng-container>
 
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+            [class.admin-row]="row.accessLevel === 'admin'">
+          </tr>
         </table>
 
       </mat-card-content>

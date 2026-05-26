@@ -9,23 +9,18 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatBadgeModule } from '@angular/material/badge';
 import { AuthService } from '../../../../core/services/auth.service';
-import { UserService, ProjectRecord } from '../../../../core/services/user.service';
+import { UserService, ProjectRecord, RecordsResponse } from '../../../../core/services/user.service';
 import { User } from '../../../../models/user.model';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [
-    CommonModule,
-    MatCardModule,
-    MatTableModule,
-    MatProgressSpinnerModule,
-    MatChipsModule,
-    MatIconModule,
-    MatButtonModule,
-    MatToolbarModule,
-    MatTooltipModule
+    CommonModule, MatCardModule, MatTableModule,
+    MatProgressSpinnerModule, MatChipsModule, MatIconModule,
+    MatButtonModule, MatToolbarModule, MatTooltipModule, MatBadgeModule
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
@@ -34,9 +29,11 @@ export class DashboardComponent implements OnInit {
   currentUser: User | null = null;
   records: ProjectRecord[] = [];
   isLoadingRecords = false;
+  accessLevel = '';
+  accessMessage = '';
   displayedColumns = ['id', 'title', 'status', 'priority', 'assignee', 'date'];
 
-  // Computed stats from real API data
+  // Stats computed from real API data
   get totalRecords() { return this.records.length; }
   get activeCount() { return this.records.filter(r => r.status === 'Active').length; }
   get pendingCount() { return this.records.filter(r => r.status === 'Pending').length; }
@@ -55,10 +52,11 @@ export class DashboardComponent implements OnInit {
 
   loadRecords(): void {
     this.isLoadingRecords = true;
-    // 1500ms delay in backend demonstrates async processing
     this.userService.getRecords().subscribe({
-      next: (res) => {
+      next: (res: RecordsResponse) => {
         this.records = res.records;
+        this.accessLevel = res.accessLevel;
+        this.accessMessage = res.message;
         this.isLoadingRecords = false;
       },
       error: () => {

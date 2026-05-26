@@ -10,11 +10,19 @@ export interface ProjectRecord {
   priority: string;
   assignee: string;
   date: string;
+  description?: string;
+  accessLevel?: string;
+}
+
+export interface RecordsResponse {
+  records: ProjectRecord[];
+  total: number;
+  accessLevel: string;
+  message: string;
 }
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
-  // Hardcoded URL — no environment file needed
   private apiUrl = 'http://localhost:5000/api/users';
 
   constructor(private http: HttpClient) {}
@@ -27,8 +35,8 @@ export class UserService {
     return this.http.get<{ user: User }>(`${this.apiUrl}/me`);
   }
 
-  getRecords(): Observable<{ records: ProjectRecord[]; total: number }> {
-    return this.http.get<{ records: ProjectRecord[]; total: number }>(`${this.apiUrl}/records`);
+  getRecords(): Observable<RecordsResponse> {
+    return this.http.get<RecordsResponse>(`${this.apiUrl}/records`);
   }
 
   createUser(userData: Partial<User> & { password: string }): Observable<any> {
